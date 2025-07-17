@@ -1,51 +1,202 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malla Interactiva Enfermería UA</title>
-    <link rel="stylesheet" href="estilos.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Malla Enfermería UA</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f8ff;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #005f99;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 20px;
+      padding: 20px 0;
+    }
+    .column {
+      flex: 0 0 auto;
+      background: #ffffff;
+      border: 1px solid #cce5ff;
+      border-radius: 10px;
+      padding: 10px;
+      min-width: 250px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .column h2 {
+      text-align: center;
+      color: #007acc;
+    }
+    .subject {
+      margin: 10px 0;
+      padding: 8px;
+      border-radius: 6px;
+      background-color: #e0f0ff;
+      border: 1px solid #a3d1ff;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s ease;
+    }
+    .subject:hover {
+      background-color: #cce9ff;
+    }
+    .subject.locked {
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      color: #888;
+      cursor: not-allowed;
+    }
+    .subject.approved {
+      background-color: #b3e6cc;
+      border-color: #66cc99;
+    }
+    .tooltip {
+      visibility: hidden;
+      background-color: #333;
+      color: #fff;
+      text-align: left;
+      border-radius: 5px;
+      padding: 5px 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 120%;
+      left: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+      white-space: pre-line;
+    }
+    .subject.locked:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
 </head>
 <body>
-    <h1>Malla Interactiva Enfermería UA</h1>
-    <div id="malla" class="malla-container">
-        <!-- Cada ramo -->
-        <!-- Ejemplo de un ramo -->
-        <div class="ramo" data-ramo="1" data-prerequisitos="">
-            Biología Celular e Histología
-        </div>
-        <div class="ramo" data-ramo="2" data-prerequisitos="">
-            Anatomía General
-        </div>
-        <div class="ramo" data-ramo="3" data-prerequisitos="">
-            Matemáticas
-        </div>
-        <div class="ramo" data-ramo="4" data-prerequisitos="">
-            Fundamentos de Enfermería
-        </div>
-        <div class="ramo" data-ramo="5" data-prerequisitos="">
-            Educación en Enfermería
-        </div>
-        <div class="ramo" data-ramo="6" data-prerequisitos="">
-            Electivo de Comunicación
-        </div>
-        <div class="ramo" data-ramo="7" data-prerequisitos="1">
-            Microbiología y Parasitología
-        </div>
-        <div class="ramo" data-ramo="8" data-prerequisitos="">
-            Química General y Orgánica
-        </div>
-        <div class="ramo" data-ramo="9" data-prerequisitos="3">
-            Bioestadística
-        </div>
-        <div class="ramo" data-ramo="10" data-prerequisitos="">
-            Socioantropología e Interculturalidad para el Cuidado
-        </div>
-        <div class="ramo" data-ramo="11" data-prerequisitos="">
-            Enfermería Basada en Evidencia
-        </div>
-        <!-- ... Continua agregando todos los ramos hasta el #44 -->
-    </div>
-    <script src="script.js"></script>
+  <h1>Malla Interactiva - Enfermería UA</h1>
+  <div class="grid" id="malla"></div>
+
+  <script>
+    const subjects = {
+      // Estructura: "Nombre": { requisitos: ["Ramo1", "Ramo2"], ciclo: "Año - Semestre" },
+      "Biología Celular e Histología": { requisitos: [], ciclo: "1° Año - Sem 1" },
+      "Anatomía General": { requisitos: [], ciclo: "1° Año - Sem 1" },
+      "Matemáticas": { requisitos: [], ciclo: "1° Año - Sem 1" },
+      "Fundamentos de Enfermería": { requisitos: [], ciclo: "1° Año - Sem 1" },
+      "Educación en Enfermería": { requisitos: [], ciclo: "1° Año - Sem 1" },
+      "Electivo de Comunicación": { requisitos: [], ciclo: "1° Año - Sem 1" },
+      "Microbiología y Parasitología": { requisitos: ["Biología Celular e Histología"], ciclo: "1° Año - Sem 2" },
+      "Química General y Orgánica": { requisitos: [], ciclo: "1° Año - Sem 2" },
+      "Bioestadística": { requisitos: ["Matemáticas"], ciclo: "1° Año - Sem 2" },
+      "Socioantropología e Interculturalidad para el Cuidado": { requisitos: [], ciclo: "1° Año - Sem 2" },
+      "Enfermería Basada en Evidencia": { requisitos: [], ciclo: "1° Año - Sem 2" },
+      "Electivo de Desarrollo del Pensamiento": { requisitos: [], ciclo: "1° Año - Sem 2" },
+
+      "Fisiología General": { requisitos: ["Anatomía General", "Microbiología y Parasitología"], ciclo: "2° Año - Sem 1" },
+      "Psicología General y del Desarrollo": { requisitos: [], ciclo: "2° Año - Sem 1" },
+      "Bioquímica": { requisitos: ["Química General y Orgánica"], ciclo: "2° Año - Sem 1" },
+      "Gestión del Cuidado en Enfermería": { requisitos: ["Anatomía General", "Educación en Enfermería", "Microbiología y Parasitología", "Química General y Orgánica", "Enfermería Basada en Evidencia"], ciclo: "2° Año - Anual" },
+      "Enfermería en Salud Pública y Determinantes Sociales": { requisitos: [], ciclo: "2° Año - Sem 1" },
+      "Fisiopatología": { requisitos: ["Fisiología General"], ciclo: "2° Año - Sem 2" },
+      "Farmacología": { requisitos: ["Fisiología General", "Bioquímica"], ciclo: "2° Año - Sem 2" },
+      "Gestión en Servicios de Salud": { requisitos: ["Enfermería en Salud Pública y Determinantes Sociales"], ciclo: "2° Año - Sem 2" },
+      "Herramientas Informáticas para la Gestión en Salud": { requisitos: ["Enfermería en Salud Pública y Determinantes Sociales"], ciclo: "2° Año - Sem 2" },
+      "Integrado de Ciclo Inicial": { requisitos: ["Educación en Enfermería", "Socioantropología e Interculturalidad para el Cuidado", "Fisiología General", "Bioquímica", "Enfermería en Salud Pública y Determinantes Sociales"], ciclo: "2° Año - Sem 2" },
+
+      "Gestión del Cuidado de la Mujer": { requisitos: [], ciclo: "3° Año - Sem 1" },
+      "Calidad en la Gestión del Cuidado": { requisitos: ["Gestión en Servicios de Salud"], ciclo: "3° Año - Sem 1" },
+      "Gestión del Cuidado en Adulto y Adulto Mayor": { requisitos: ["Gestión del Cuidado en Enfermería", "Fisiopatología", "Farmacología", "Integrado de Ciclo Inicial"], ciclo: "3° Año - Anual" },
+      "Gestión del Cuidado en Comunidades I": { requisitos: ["Gestión del Cuidado en Enfermería", "Fisiopatología", "Farmacología", "Integrado de Ciclo Inicial"], ciclo: "3° Año - Anual" },
+      "Enfermería del Adulto Mayor": { requisitos: [], ciclo: "3° Año - Sem 1" },
+      "Bioética": { requisitos: ["Electivo de Ética"], ciclo: "3° Año - Sem 2" },
+      "Metodología de la Investigación": { requisitos: ["Bioestadística", "Enfermería Basada en Evidencia", "Herramientas Informáticas para la Gestión en Salud"], ciclo: "3° Año - Sem 2" },
+      "Gestión del Cuidado en Salud Mental": { requisitos: [], ciclo: "3° Año - Sem 2" },
+      "Cuidados Paliativos y Proceso de Morir": { requisitos: ["Enfermería del Adulto Mayor"], ciclo: "3° Año - Sem 2" },
+
+      "Proyecto de la Investigación I": { requisitos: ["Metodología de la Investigación"], ciclo: "4° Año - Sem 1" },
+      "Gestión del Cuidado en Urgencia": { requisitos: ["Gestión del Cuidado en Adulto y Adulto Mayor", "Gestión del Cuidado en Comunidades I"], ciclo: "4° Año - Anual" },
+      "Gestión del Cuidado del Niño y Adolescente": { requisitos: ["Gestión del Cuidado en Adulto y Adulto Mayor", "Gestión del Cuidado en Comunidades I"], ciclo: "4° Año - Anual" },
+      "Gestión del Cuidado en Comunidades II": { requisitos: ["Gestión del Cuidado en Comunidades I"], ciclo: "4° Año - Anual" },
+      "Proyecto de la Investigación II": { requisitos: ["Proyecto de la Investigación I"], ciclo: "4° Año - Sem 2" },
+      "Integrado de Ciclo Intermedio": {
+        requisitos: [
+          "Biología Celular e Histología", "Anatomía General", "Matemáticas", "Fundamentos de Enfermería",
+          "Educación en Enfermería", "Electivo de Comunicación", "Microbiología y Parasitología",
+          "Química General y Orgánica", "Bioestadística", "Socioantropología e Interculturalidad para el Cuidado",
+          "Enfermería Basada en Evidencia", "Electivo de Desarrollo del Pensamiento", "Fisiología General",
+          "Psicología General y del Desarrollo", "Bioquímica", "Gestión del Cuidado en Enfermería",
+          "Enfermería en Salud Pública y Determinantes Sociales", "Fisiopatología", "Farmacología",
+          "Gestión en Servicios de Salud", "Herramientas Informáticas para la Gestión en Salud",
+          "Integrado de Ciclo Inicial", "Gestión del Cuidado de la Mujer", "Calidad en la Gestión del Cuidado",
+          "Gestión del Cuidado en Adulto y Adulto Mayor", "Gestión del Cuidado en Comunidades I",
+          "Enfermería del Adulto Mayor", "Electivo de Ética", "Bioética", "Metodología de la Investigación",
+          "Gestión del Cuidado en Salud Mental", "Cuidados Paliativos y Proceso de Morir",
+          "Proyecto de la Investigación I"
+        ],
+        ciclo: "4° Año - Sem 2"
+      }
+    };
+
+    const approved = JSON.parse(localStorage.getItem('aprobados') || '[]');
+
+    function isUnlocked(name) {
+      return subjects[name].requisitos.every(req => approved.includes(req));
+    }
+
+    function updateUI() {
+      const container = document.getElementById("malla");
+      container.innerHTML = "";
+
+      const ciclos = [...new Set(Object.values(subjects).map(s => s.ciclo))];
+
+      for (const ciclo of ciclos) {
+        const col = document.createElement("div");
+        col.className = "column";
+        const title = document.createElement("h2");
+        title.textContent = ciclo;
+        col.appendChild(title);
+
+        for (const [nombre, data] of Object.entries(subjects).filter(([_, v]) => v.ciclo === ciclo)) {
+          const div = document.createElement("div");
+          div.className = "subject";
+          div.textContent = nombre;
+
+          if (approved.includes(nombre)) {
+            div.classList.add("approved");
+          } else if (!isUnlocked(nombre)) {
+            div.classList.add("locked");
+            const tooltip = document.createElement("div");
+            tooltip.className = "tooltip";
+            const faltantes = data.requisitos.filter(r => !approved.includes(r));
+            tooltip.textContent = "Faltan:\n" + faltantes.join("\n");
+            div.appendChild(tooltip);
+          }
+
+          div.addEventListener("click", () => {
+            if (div.classList.contains("locked")) return;
+            const idx = approved.indexOf(nombre);
+            if (idx >= 0) approved.splice(idx, 1);
+            else approved.push(nombre);
+            localStorage.setItem('aprobados', JSON.stringify(approved));
+            updateUI();
+          });
+
+          col.appendChild(div);
+        }
+
+        container.appendChild(col);
+      }
+    }
+
+    updateUI();
+  </script>
 </body>
 </html>
